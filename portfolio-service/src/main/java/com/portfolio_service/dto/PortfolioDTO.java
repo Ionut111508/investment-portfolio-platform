@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 public class PortfolioDTO {
     private Long id;
     private String owner;
+    private BigDecimal cashBalance;
+    private BigDecimal investmentsValue;
     private BigDecimal totalValue;
     private String currency;
     private LocalDateTime createdAt;
