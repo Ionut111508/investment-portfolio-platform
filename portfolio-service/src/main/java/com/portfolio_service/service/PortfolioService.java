@@ -1,11 +1,11 @@
 package com.portfolio_service.service;
-import com.opencsv.CSVReader;
 
-import com.portfolio_service.entity.Transaction;
-import com.portfolio_service.exception.PortfolioNotFoundException;
+import com.opencsv.CSVReader;
 import com.portfolio_service.dto.CreatePortfolioRequest;
 import com.portfolio_service.dto.PortfolioDTO;
 import com.portfolio_service.entity.Portfolio;
+import com.portfolio_service.entity.Transaction;
+import com.portfolio_service.exception.PortfolioNotFoundException;
 import com.portfolio_service.repository.PortfolioRepository;
 import com.portfolio_service.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,7 @@ public class PortfolioService {
 
     public PortfolioDTO getPortfolioById(Long id) {
         Portfolio portfolio = portfolioRepository.findById(id)
-                .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found with id " + id));
+                .orElseThrow(() -> new PortfolioNotFoundException(id));
         return mapToDTO(portfolio);
     }
 
@@ -58,7 +58,7 @@ public class PortfolioService {
 
     public PortfolioDTO updatePortfolio(Long id, CreatePortfolioRequest request) {
         Portfolio existing = portfolioRepository.findById(id)
-                .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found with id " + id));
+                .orElseThrow(() -> new PortfolioNotFoundException(id));
 
         existing.setOwner(request.getOwner());
         existing.setTotalValue(request.getTotalValue());
@@ -69,7 +69,7 @@ public class PortfolioService {
 
     public void deletePortfolio(Long id) {
         Portfolio existing = portfolioRepository.findById(id)
-                .orElseThrow(() -> new PortfolioNotFoundException("Portfolio not found with id " + id));
+                .orElseThrow(() -> new PortfolioNotFoundException(id));
         portfolioRepository.delete(existing);
     }
 
@@ -96,7 +96,10 @@ public class PortfolioService {
         boolean firstLine = true;
 
         while ((line = reader.readNext()) != null) {
-            if (firstLine) { firstLine = false; continue; }
+            if (firstLine) {
+                firstLine = false;
+                continue;
+            }
 
             Transaction transaction = transactionService.mapCsvRowToTransaction(line, portfolioId);
 

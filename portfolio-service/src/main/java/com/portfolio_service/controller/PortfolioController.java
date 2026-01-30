@@ -1,8 +1,9 @@
 package com.portfolio_service.controller;
 
 import com.portfolio_service.dto.CreatePortfolioRequest;
+import com.portfolio_service.dto.HoldingDTO;
 import com.portfolio_service.dto.PortfolioDTO;
-import com.portfolio_service.dto.TransactionDTO;
+import com.portfolio_service.service.HoldingService;
 import com.portfolio_service.service.PortfolioService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +17,11 @@ import java.util.List;
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
+    private final HoldingService holdingService;
 
-    public PortfolioController(PortfolioService portfolioService) {
+    public PortfolioController(PortfolioService portfolioService, HoldingService holdingService) {
         this.portfolioService = portfolioService;
+        this.holdingService = holdingService;
     }
 
     @GetMapping
@@ -65,4 +68,9 @@ public class PortfolioController {
         }
     }
 
+    @GetMapping("/{portfolioId}/holdings")
+    public ResponseEntity<List<HoldingDTO>> getHoldings(@PathVariable Long portfolioId) {
+        List<HoldingDTO> holdings = holdingService.getHoldingsByPortfolioId(portfolioId);
+        return ResponseEntity.ok(holdings);
+    }
 }
