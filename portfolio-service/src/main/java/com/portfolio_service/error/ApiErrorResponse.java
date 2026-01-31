@@ -1,9 +1,13 @@
 package com.portfolio_service.error;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Builder
 public class ApiErrorResponse {
 
     private String errorCode;
@@ -17,12 +21,12 @@ public class ApiErrorResponse {
             String message,
             HttpServletRequest request
     ) {
-        ApiErrorResponse response = new ApiErrorResponse();
-        response.errorCode = errorCode.getCode();
-        response.message = message;
-        response.status = errorCode.getHttpStatus();
-        response.path = request.getRequestURI();
-        response.timestamp = LocalDateTime.now();
-        return response;
+        return ApiErrorResponse.builder()
+                .errorCode(errorCode.getCode())
+                .message(message)
+                .status(errorCode.getHttpStatus())
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 }

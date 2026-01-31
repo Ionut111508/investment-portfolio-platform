@@ -1,22 +1,40 @@
 package com.portfolio_service.dto;
 
-import lombok.AllArgsConstructor;
+import com.portfolio_service.entity.Transaction;
+import com.portfolio_service.enums.TransactionAction;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class TransactionDTO {
-    private String action;
+
+    private Long id;
+    private TransactionAction action;
     private LocalDateTime time;
     private String ticker;
-    private double shares;
-    private double price;
-    private double total;
+    private String name;
+    private BigDecimal numberOfShares;
+    private BigDecimal pricePerShare;
+    private BigDecimal total;
     private String currency;
+    private BigDecimal conversionFee;
+
+    public static TransactionDTO fromEntity(Transaction transaction) {
+        return TransactionDTO.builder()
+                .id(transaction.getId())
+                .action(transaction.getAction())
+                .time(transaction.getTime())
+                .ticker(transaction.getTicker())
+                .name(transaction.getName())
+                .numberOfShares(transaction.getNumberOfShares())
+                .pricePerShare(transaction.getPricePerShare())
+                .total(transaction.getTotal())
+                .currency(transaction.getCurrency())
+                .conversionFee(transaction.getConversionFee())
+                .build();
+    }
 }

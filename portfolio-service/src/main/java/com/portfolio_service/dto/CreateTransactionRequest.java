@@ -1,8 +1,6 @@
-package com.portfolio_service.entity;
+package com.portfolio_service.dto;
 
 import com.portfolio_service.enums.TransactionAction;
-import com.portfolio_service.utils.TransactionActionConverter;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,28 +9,18 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "transactions")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Transaction {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Convert(converter = TransactionActionConverter.class)
+public class CreateTransactionRequest {
     private TransactionAction action;
-
-    private LocalDateTime time;
     private String ticker;
     private String name;
     private BigDecimal numberOfShares;
     private BigDecimal pricePerShare;
-    private String currency;
     private BigDecimal total;
+    private String currency;
+    private LocalDateTime time;
     private BigDecimal conversionFee;
-    private Long portfolioId;
 }

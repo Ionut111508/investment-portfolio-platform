@@ -2,6 +2,9 @@ package com.portfolio_service.service;
 
 import com.portfolio_service.dto.HoldingDTO;
 import com.portfolio_service.entity.Transaction;
+import com.portfolio_service.enums.TransactionAction;
+import com.portfolio_service.exception.PortfolioNotFoundException;
+import com.portfolio_service.repository.PortfolioRepository;
 import com.portfolio_service.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,15 +21,20 @@ import java.util.Map;
 public class HoldingService {
 
     private final TransactionRepository transactionRepository;
+    private final PortfolioRepository portfolioRepository;
 
     public List<HoldingDTO> getHoldingsByPortfolioId(Long portfolioId) {
+
+        if (!portfolioRepository.existsById(portfolioId)) {
+            throw new PortfolioNotFoundException(portfolioId);
+        }
 
         List<Transaction> transactions = transactionRepository.findByPortfolioId(portfolioId);
 
         Map<String, HoldingDTO> holdingsMap = new HashMap<>();
 
         for (Transaction t : transactions) {
-            if (!t.getAction().equals("Market buy") && !t.getAction().equals("Market sell")) {
+            if (!t.getAction().equals(TransactionAction.MARKET_BUY) && !t.getAction().equals(TransactionAction.MARKET_SELL)) {
                 continue;
             }
 
@@ -43,7 +51,7 @@ public class HoldingService {
 
             HoldingDTO h = holdingsMap.get(t.getTicker());
 
-            BigDecimal signedShares = t.getAction().equals("Market buy") ? t.getNumberOfShares() : t.getNumberOfShares().negate();
+            BigDecimal signedShares = t.getAction().equals(TransactionAction.MARKET_BUY) ? t.getNumberOfShares() : t.getNumberOfShares().negate();
             BigDecimal signedTotal = signedShares.multiply(t.getPricePerShare());
 
             // update total shares

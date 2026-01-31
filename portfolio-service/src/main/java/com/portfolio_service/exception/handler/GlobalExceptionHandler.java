@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.time.LocalDateTime;
 
 @Slf4j
 @RestControllerAdvice
@@ -32,6 +35,29 @@ public class GlobalExceptionHandler {
                 .status(errorCode.getHttpStatus())
                 .body(ApiErrorResponse.from(errorCode, ex.getMessage(), request));
     }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
+                                                               HttpServletRequest request) {
+
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .status(ErrorCode.INVALID_REQUEST_PARAMETER.getHttpStatus())
+                .errorCode(ErrorCode.INVALID_REQUEST_PARAMETER.getCode())
+                .message(
+                        "Invalid value '%s' for parameter '%s'. Expected type: %s"
+                                .formatted(
+                                        ex.getValue(),
+                                        ex.getName(),
+                                        ex.getRequiredType().getSimpleName()
+                                )
+                )
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleUnexpectedException(
