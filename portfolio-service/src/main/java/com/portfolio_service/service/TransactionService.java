@@ -12,6 +12,7 @@ import com.portfolio_service.exception.TransactionNotFoundException;
 import com.portfolio_service.repository.PortfolioRepository;
 import com.portfolio_service.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -53,7 +54,8 @@ public class TransactionService {
                 .build();
     }
 
-    public Transaction addTransaction(Long portfolioId, CreateTransactionRequest request) {
+    @CacheEvict(value = "holdingsCache", key = "#portfolioId")
+    public TransactionDTO addTransaction(Long portfolioId, CreateTransactionRequest request) {
         if (!portfolioRepository.existsById(portfolioId)) {
             throw new PortfolioNotFoundException(portfolioId);
         }
@@ -71,16 +73,20 @@ public class TransactionService {
                 .conversionFee(request.getConversionFee() != null ? request.getConversionFee() : BigDecimal.ZERO)
                 .build();
 
-        return transactionRepository.save(transaction);
+        return TransactionDTO.fromEntity(transactionRepository.save(transaction));
     }
 
-    public List<Transaction> getTransactions(Long portfolioId) {
+    public List<TransactionDTO> getTransactions(Long portfolioId) {
         if (!portfolioRepository.existsById(portfolioId)) {
             throw new PortfolioNotFoundException(portfolioId);
         }
-        return transactionRepository.findByPortfolioId(portfolioId);
+        return transactionRepository.findByPortfolioId(portfolioId)
+                .stream()
+                .map(TransactionDTO::fromEntity)
+                .toList();
     }
 
+    @CacheEvict(value = "holdingsCache", key = "#portfolioId")
     public void deleteTransaction(Long portfolioId, Long transactionId) {
         if (!portfolioRepository.existsById(portfolioId)) {
             throw new PortfolioNotFoundException(portfolioId);
@@ -96,6 +102,7 @@ public class TransactionService {
         transactionRepository.delete(transaction);
     }
 
+    @CacheEvict(value = "holdingsCache", key = "#portfolioId")
     public TransactionDTO updateTransaction(Long transactionId, UpdateTransactionRequest request) {
         Transaction transaction = transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFoundException(transactionId));
@@ -109,8 +116,9 @@ public class TransactionService {
         if (request.getCurrency() != null) transaction.setCurrency(request.getCurrency());
         if (request.getConversionFee() != null) transaction.setConversionFee(request.getConversionFee());
         if (request.getTime() != null) transaction.setTime(request.getTime());
+        transaction = transactionRepository.save(transaction);
 
-        return TransactionDTO.fromEntity(transactionRepository.save(transaction));
+        return TransactionDTO.fromEntity(transaction);
     }
 
 }

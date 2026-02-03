@@ -3,7 +3,6 @@ package com.portfolio_service.controller;
 import com.portfolio_service.dto.CreateTransactionRequest;
 import com.portfolio_service.dto.TransactionDTO;
 import com.portfolio_service.dto.UpdateTransactionRequest;
-import com.portfolio_service.entity.Transaction;
 import com.portfolio_service.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,19 +24,14 @@ public class TransactionController {
             @PathVariable Long portfolioId,
             @RequestBody @Valid CreateTransactionRequest request
     ) {
-        Transaction transaction = transactionService.addTransaction(portfolioId, request);
+        TransactionDTO transaction = transactionService.addTransaction(portfolioId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(TransactionDTO.fromEntity(transaction));
+                .body(transaction);
     }
 
     @GetMapping
     public ResponseEntity<List<TransactionDTO>> getTransactions(@PathVariable Long portfolioId) {
-        List<Transaction> transactions = transactionService.getTransactions(portfolioId);
-        return ResponseEntity.ok(
-                transactions.stream()
-                        .map(TransactionDTO::fromEntity)
-                        .toList()
-        );
+        return ResponseEntity.ok(transactionService.getTransactions(portfolioId));
     }
 
     @DeleteMapping("/{transactionId}")
