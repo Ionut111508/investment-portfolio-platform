@@ -56,25 +56,38 @@ public class TransactionService {
 
     @CacheEvict(value = "holdingsCache", key = "#portfolioId")
     public TransactionDTO addTransaction(Long portfolioId, CreateTransactionRequest request) {
+
         if (!portfolioRepository.existsById(portfolioId)) {
             throw new PortfolioNotFoundException(portfolioId);
         }
+
+        BigDecimal numberOfShares =
+                request.getNumberOfShares() != null ? request.getNumberOfShares() : BigDecimal.ZERO;
+
+        BigDecimal pricePerShare =
+                request.getPricePerShare() != null ? request.getPricePerShare() : BigDecimal.ZERO;
+
+        BigDecimal conversionFee =
+                request.getConversionFee() != null ? request.getConversionFee() : BigDecimal.ZERO;
+
+        BigDecimal total = numberOfShares.multiply(pricePerShare);
 
         Transaction transaction = Transaction.builder()
                 .portfolioId(portfolioId)
                 .action(request.getAction())
                 .ticker(request.getTicker())
                 .name(request.getName())
-                .numberOfShares(request.getNumberOfShares())
-                .pricePerShare(request.getPricePerShare())
-                .total(request.getTotal())
+                .numberOfShares(numberOfShares)
+                .pricePerShare(pricePerShare)
+                .total(total)
                 .currency(request.getCurrency())
-                .time(request.getTime() != null ? request.getTime() : java.time.LocalDateTime.now())
-                .conversionFee(request.getConversionFee() != null ? request.getConversionFee() : BigDecimal.ZERO)
+                .time(request.getTime() != null ? request.getTime() : LocalDateTime.now())
+                .conversionFee(conversionFee)
                 .build();
 
         return TransactionDTO.fromEntity(transactionRepository.save(transaction));
     }
+
 
     public List<TransactionDTO> getTransactions(Long portfolioId) {
         if (!portfolioRepository.existsById(portfolioId)) {
@@ -82,6 +95,7 @@ public class TransactionService {
         }
         return transactionRepository.findByPortfolioId(portfolioId)
                 .stream()
+                .sorted((t1, t2) -> t2.getTime().compareTo(t1.getTime()))
                 .map(TransactionDTO::fromEntity)
                 .toList();
     }
